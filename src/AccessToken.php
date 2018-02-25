@@ -8,7 +8,6 @@ use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use League\OAuth2\Server\CryptKey;
 use Laravel\Passport\Bridge\AccessToken as PassportAccessToken;
-use Illuminate\Support\Arr;
 
 class AccessToken extends PassportAccessToken
 {
@@ -27,14 +26,16 @@ class AccessToken extends PassportAccessToken
             ->setSubject($this->getUserIdentifier())
             ->set('scopes', $this->getScopes());
 
-        // set user claims
-        foreach($claims['user_claims'] as $key => $claim) {
-            $builder = $builder->set($key, $user->$claim);
-        }
+        if($user) {
+            // set user claims
+            foreach ($claims['user_claims'] as $key => $claim) {
+                $builder = $builder->set($key, $user->$claim);
+            }
 
-        // set app claims
-        foreach($claims['app_claims'] as $key => $claim) {
-            $builder = $builder->set($key, $claim);
+            // set app claims
+            foreach ($claims['app_claims'] as $key => $claim) {
+                $builder = $builder->set($key, $claim);
+            }
         }
 
         // sign and return the token
@@ -50,7 +51,7 @@ class AccessToken extends PassportAccessToken
             throw new RuntimeException('Unable to determine authentication model from configuration.');
         }
 
-        $user = (new $model)->findOrFail($this->getUserIdentifier());
+        $user = (new $model)->find($this->getUserIdentifier());
 
         return $user;
     }
